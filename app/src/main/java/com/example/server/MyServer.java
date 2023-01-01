@@ -5,9 +5,7 @@ import android.os.Build;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -17,6 +15,8 @@ import java.net.SocketException;
 import java.util.Enumeration;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class MyServer {
     private String ip = "";
@@ -27,7 +27,7 @@ public class MyServer {
     public BiFunction<String, Integer, Boolean> onConnect;
     public Consumer<String> afterConnect;
     public Consumer<String> afterWrite;
-    public Consumer<String> afterRead;
+    public Function<String, String> afterRead;
 
     public MyServer(int serverPort) {
         this.serverPort = serverPort;
@@ -133,22 +133,30 @@ public class MyServer {
         @SuppressLint("DefaultLocale")
         @Override
         public void run() {
+            boolean done = false;
+            String banner = String.format("Hello from Server, you are #%s\n", connId);
             PrintStream out = null;
             BufferedReader in = null;
+            String toClient = banner;
+
             try {
-                String banner = String.format("Hello from Server, you are #%s\n", connId);
                 in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
                 out = new PrintStream(clientSocket.getOutputStream());
-                out.print(banner);
-                if (afterWrite != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        afterWrite.accept(String.format("%s: Replied with %d bytes\n", connId, banner.length()));
+
+                while (!done) {
+                    out.print(toClient);
+                    if (afterWrite != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            afterWrite.accept(String.format("%s: Replied with %d bytes\n", connId, banner.length()));
+                        }
                     }
-                }
-                String s = in.readLine();
-                if (afterRead != null) {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                        afterRead.accept(String.format("%s: Received %d bytes\n", connId, s.length()));
+
+                    String fromClient = in.readLine();
+                    if (afterRead != null) {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            toClient = afterRead.apply(String.format("%s: Received %d bytes\n", connId, fromClient.length()));
+                            done = "exit".equals(toClient);
+                        }
                     }
                 }
             } catch (IOException e) {

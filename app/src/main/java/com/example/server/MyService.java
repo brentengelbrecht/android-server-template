@@ -85,6 +85,7 @@ public class MyService extends Service {
                     onNotify.accept(String.format("Read op: %s\n", data));
                 }
             }
+            return "exit";
         };
         return START_STICKY;
     }
