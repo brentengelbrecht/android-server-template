@@ -41,21 +41,11 @@ public class Server {
             try {
                 serverSocket.close();
             } catch (IOException e) {
-// TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
     }
 
-    /*
-    public String getIpAddress() throws UnknownHostException {
-        WifiManager wifiManager = (WifiManager) activity.getApplicationContext().getSystemService(WIFI_SERVICE);
-        assert wifiManager != null;
-        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-        int ipInt = wifiInfo.getIpAddress();
-        return InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
-    }
-*/
     private void getIpAddress() {
         try {
             Enumeration<NetworkInterface> enumNetworkInterfaces = NetworkInterface
@@ -67,12 +57,10 @@ public class Server {
                     InetAddress inetAddress = enumInetAddress.nextElement();
                     if (inetAddress.isSiteLocalAddress()) {
                         ip = inetAddress.getHostAddress();
-                        //ip = String.format("Server running at: %s\n", inetAddress.getHostAddress());
                     }
                 }
             }
         } catch (SocketException e) {
-// TODO Auto-generated catch block
             e.printStackTrace();
             ip += String.format("Something's wrong! %s\n", e);
         }
@@ -99,7 +87,6 @@ public class Server {
                     socketServerReplyThread.start();
                 }
             } catch (IOException e) {
-// TODO Auto-generated catch block
                 e.printStackTrace();
             }
         }
@@ -126,7 +113,6 @@ public class Server {
                 message += String.format("replied: %s\n", msgReply);
                 activity.runOnUiThread(() -> activity.msg.setText(message));
             } catch (IOException e) {
-// TODO Auto-generated catch block
                 e.printStackTrace();
                 message += String.format("Something's wrong! %s\n", e);
             }
